@@ -10,7 +10,6 @@ pygame.init()
 WINDOW_HEIGHT = 720
 WINDOW_WIDTH = 1280
 WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-MAX_GAME_SPEED = 45
 
 # Texture load
 MARIO = [pygame.image.load("textures/mario_001.png"), pygame.image.load("textures/mario_002.png"), pygame.image.load("textures/mario_003.png")]
@@ -40,6 +39,7 @@ obstacles, players = [], []
 ge, nets = [], []
 pop = None
 draw_hud = False
+max_score = 10000
 
 
 # Main player class
@@ -180,7 +180,7 @@ def statistics():
     global players, pop
     score_text.set_text("SCORE: " + str(points))
     alive_text.set_text("PLAYERS ALIVE: " + str(len(players)))
-    generation_text.set_text("GENERATION: " + str(pop.generation))
+    generation_text.set_text("GENERATION: " + str(pop.generation + 1))
 
 
 # Function to update ground
@@ -215,6 +215,18 @@ def remove(index):
     players.pop(index)
     ge.pop(index)
     nets.pop(index)
+
+
+# Function to kill all players (saving their fitness)
+def kill_players():
+    global players, ge, nets
+    players = []
+    # Update fitness for remaining players
+    for i in range(0, len(ge)):
+        ge[i].fitness = points
+
+    ge = []
+    nets = []
 
 
 # Main loop function
@@ -256,16 +268,13 @@ def eval_genomes(genomes, config):
             if event.type == pygame.KEYDOWN:
                 # Kill all players
                 if event.key == pygame.K_k:
-                    players = []
-                    # Update fitness for remaining players
-                    for i in range(0, len(ge)):
-                        ge[i].fitness = points
-
-                    ge = []
-                    nets = []
+                    kill_players()
                 # Activate/Remove HUD
                 if event.key == pygame.K_h:
                     draw_hud = not draw_hud
+
+        if points >= max_score:
+            kill_players()
 
         # Draw background
         background()
